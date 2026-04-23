@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white pt-4 pb-2 border-bottom-0">
+                <h3 class="mb-0 fw-bold">{{ '編輯' if category else '新增' }}分類</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('category.update', id=category.id) if category else url_for('category.create') }}">
+                    
+                    <div class="mb-4">
+                        <label for="name" class="form-label text-muted small fw-bold">分類名稱 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="如：早餐、計程車、獎金" value="{{ category.name if category else '' }}">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">收支類型 <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="type" id="type_expense" value="expense" required {% if not category or category.type == 'expense' %}checked{% endif %}>
+                                <label class="form-check-label text-danger fw-bold" for="type_expense">支出</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="type" id="type_income" value="income" required {% if category and category.type == 'income' %}checked{% endif %}>
+                                <label class="form-check-label text-success fw-bold" for="type_income">收入</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between pt-3 border-top">
+                        <a href="{{ url_for('category.index') }}" class="btn btn-outline-secondary px-4">返回列表</a>
+                        <button type="submit" class="btn btn-primary px-5">儲存分類</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

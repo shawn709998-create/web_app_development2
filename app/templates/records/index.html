@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>收支紀錄</h2>
+    <a href="{{ url_for('record.new') }}" class="btn btn-primary shadow-sm">+ 新增紀錄</a>
+</div>
+
+<div class="card mb-4 shadow-sm border-0">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('record.index') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-muted small mb-1">選擇月份</label>
+                <input type="month" name="month" class="form-control" value="{{ request.args.get('month', '') }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-muted small mb-1">分類</label>
+                <select name="category_id" class="form-select">
+                    <option value="">所有分類</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}" {% if request.args.get('category_id') == c.id|string %}selected{% endif %}>
+                        {{ c.name }} ({{ '收入' if c.type == 'income' else '支出' }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-secondary px-4">篩選</button>
+                <a href="{{ url_for('record.index') }}" class="btn btn-outline-secondary ms-2">清除</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">日期</th>
+                    <th>類型</th>
+                    <th>分類</th>
+                    <th>金額</th>
+                    <th>備註</th>
+                    <th class="text-end pe-4">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td class="ps-4">{{ record.date }}</td>
+                    <td>
+                        {% if record.type == 'income' %}
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success">收入</span>
+                        {% else %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">支出</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ record.category_name or '未分類' }}</td>
+                    <td class="fw-bold">${{ "%.0f"|format(record.amount) }}</td>
+                    <td class="text-muted">{{ record.note }}</td>
+                    <td class="text-end pe-4">
+                        <a href="{{ url_for('record.edit', id=record.id) }}" class="btn btn-sm btn-outline-primary">編輯</a>
+                        <form action="{{ url_for('record.delete', id=record.id) }}" method="POST" class="d-inline" onsubmit="return confirm('確定要刪除這筆紀錄嗎？');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">刪除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-5">沒有符合的紀錄</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

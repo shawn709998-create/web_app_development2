@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white pt-4 pb-2 border-bottom-0">
+                <h3 class="mb-0 fw-bold">{{ '編輯' if record else '新增' }}收支紀錄</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('record.update', id=record.id) if record else url_for('record.create') }}">
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">收支類型 <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="type" id="type_expense" value="expense" required {% if not record or record.type == 'expense' %}checked{% endif %}>
+                                <label class="form-check-label text-danger fw-bold" for="type_expense">支出</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="type" id="type_income" value="income" required {% if record and record.type == 'income' %}checked{% endif %}>
+                                <label class="form-check-label text-success fw-bold" for="type_income">收入</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label text-muted small fw-bold">日期 <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="date" name="date" required value="{{ record.date if record else '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="amount" class="form-label text-muted small fw-bold">金額 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" min="0" class="form-control" id="amount" name="amount" required value="{{ record.amount if record else '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label text-muted small fw-bold">分類 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="category_id" name="category_id" required>
+                            <option value="">請選擇分類...</option>
+                            {% for c in categories %}
+                            <option value="{{ c.id }}" data-type="{{ c.type }}" {% if record and record.category_id == c.id %}selected{% endif %}>
+                                {{ c.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="note" class="form-label text-muted small fw-bold">備註</label>
+                        <input type="text" class="form-control" id="note" name="note" placeholder="可選填" value="{{ record.note if record else '' }}">
+                    </div>
+
+                    <div class="d-flex justify-content-between pt-3 border-top">
+                        <a href="{{ url_for('record.index') }}" class="btn btn-outline-secondary px-4">返回列表</a>
+                        <button type="submit" class="btn btn-primary px-5">{{ '更新紀錄' if record else '儲存紀錄' }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeRadios = document.querySelectorAll('input[name="type"]');
+        const categorySelect = document.getElementById('category_id');
+        const options = Array.from(categorySelect.options);
+
+        function filterCategories() {
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            let firstValid = null;
+            
+            options.forEach(opt => {
+                if(opt.value === "") return;
+                
+                if (opt.dataset.type === selectedType) {
+                    opt.style.display = '';
+                    if(!firstValid) firstValid = opt;
+                } else {
+                    opt.style.display = 'none';
+                    if (opt.selected) opt.selected = false;
+                }
+            });
+            
+            // 避免隱藏的選項被選中
+            if (categorySelect.selectedIndex > 0 && 
+                categorySelect.options[categorySelect.selectedIndex].style.display === 'none') {
+                categorySelect.value = "";
+            }
+        }
+
+        typeRadios.forEach(radio => {
+            radio.addEventListener('change', filterCategories);
+        });
+
+        // 初始執行一次
+        filterCategories();
+        
+        // 若新增且未帶日期，預設今天
+        const dateInput = document.getElementById('date');
+        if(!dateInput.value) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+    });
+</script>
+{% endblock %}
